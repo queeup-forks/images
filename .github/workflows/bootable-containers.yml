@@ -49,7 +49,7 @@ jobs:
 
       - name: Login to Container Registry
         uses: redhat-actions/podman-login@v1
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false || (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -57,14 +57,13 @@ jobs:
           auth_file_path: /tmp/auth.json
 
       - uses: sigstore/cosign-installer@v3.6.0
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false || (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
 
       - name: Checkout repo
         uses: actions/checkout@v4
-        with:
-          ref: ${{ matrix.version == 'rawhide' && 'main' || format('f{0}', matrix.version) }}
 
       - name: Get GPG keys for Asahi repos
+        if: false
         run: |
           dnf copr enable -y @asahi/fedora-remix-branding
           dnf install -y asahi-repos
@@ -80,6 +79,7 @@ jobs:
           VARIANT: ${{ matrix.variant }}
 
       - name: Push container image to container registry
+        if: false 
         id: push
         run: |
           buildid=""
@@ -106,7 +106,7 @@ jobs:
           VARIANT: ${{ matrix.variant }}
 
       - name: Sign container image
-        if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        if: false || (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         run: |
           version="$(rpm-ostree compose tree --print-only --repo=repo silverblue-asahi-remix.yaml | jq -r '."mutate-os-release"')"
           cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY }}/${VARIANT}:${version}
