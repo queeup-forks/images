@@ -110,5 +110,5 @@ jobs:
       #    cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY }}/${VARIANT}:${version}
       #  env:
       #    COSIGN_EXPERIMENTAL: false
-          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-          VARIANT: ${{ matrix.variant }}
+      #    COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+      #    VARIANT: ${{ matrix.variant }}
