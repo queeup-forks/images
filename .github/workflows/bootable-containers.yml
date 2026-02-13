@@ -62,10 +62,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      #- name: Get GPG keys for Asahi repos
-      #  run: |
-      #    dnf copr enable -y @asahi/fedora-remix-branding
-      #    dnf install -y asahi-repos
+      - name: Get GPG keys for Asahi repos
+        run: |
+          dnf copr enable -y @asahi/fedora-remix-branding
+          dnf install -y asahi-repos
 
       - name: Install latest rpm-ostree package from testing repos
         run: |
