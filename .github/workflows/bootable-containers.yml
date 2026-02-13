@@ -47,26 +47,25 @@ jobs:
         run: |
           mkdir -p /github/home/.docker/
 
-      - name: Login to Container Registry
-        uses: redhat-actions/podman-login@v1
-        if: !always() (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          auth_file_path: /tmp/auth.json
+      #- name: Login to Container Registry
+      #  uses: redhat-actions/podman-login@v1
+      #  if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+      #  with:
+      #    registry: ${{ env.REGISTRY }}
+      #    username: ${{ github.actor }}
+      #    password: ${{ secrets.GITHUB_TOKEN }}
+      #    auth_file_path: /tmp/auth.json
 
-      - uses: sigstore/cosign-installer@v3.6.0
-        if: !always() (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+      #- uses: sigstore/cosign-installer@v3.6.0
+      #  if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
 
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Get GPG keys for Asahi repos
-        if: !always()
-        run: |
-          dnf copr enable -y @asahi/fedora-remix-branding
-          dnf install -y asahi-repos
+      #- name: Get GPG keys for Asahi repos
+      #  run: |
+      #    dnf copr enable -y @asahi/fedora-remix-branding
+      #    dnf install -y asahi-repos
 
       - name: Install latest rpm-ostree package from testing repos
         run: |
@@ -78,39 +77,38 @@ jobs:
         env:
           VARIANT: ${{ matrix.variant }}
 
-      - name: Push container image to container registry
-        if: !always()
-        id: push
-        run: |
-          buildid=""
-          if [[ -f ".buildid" ]]; then
-              buildid="$(< .buildid)"
-          else
-              buildid="$(date '+%Y%m%d.0')"
-              echo "${buildid}" > .buildid
-          fi
-          version="$(rpm-ostree compose tree --print-only --repo=repo silverblue-asahi-remix.yaml | jq -r '."mutate-os-release"')"
-          skopeo copy \
-            --authfile /tmp/auth.json \
-            --retry-times 3 \
-            --dest-compress-format zstd \
-            oci-archive:${VARIANT}-asahi-remix.ociarchive \
-            docker://${REGISTRY}/${VARIANT}:${version}.${buildid}
-          skopeo copy \
-            --authfile /tmp/auth.json \
-            --retry-times 3 \
-            --dest-compress-format zstd \
-            docker://${REGISTRY}/${VARIANT}:${version}.${buildid} \
-            docker://${REGISTRY}/${VARIANT}:${version}
-        env:
-          VARIANT: ${{ matrix.variant }}
+      #- name: Push container image to container registry
+      #  id: push
+      #  run: |
+      #    buildid=""
+      #    if [[ -f ".buildid" ]]; then
+      #        buildid="$(< .buildid)"
+      #    else
+      #        buildid="$(date '+%Y%m%d.0')"
+      #        echo "${buildid}" > .buildid
+      #    fi
+      #    version="$(rpm-ostree compose tree --print-only --repo=repo silverblue-asahi-remix.yaml | jq -r '."mutate-os-release"')"
+      #    skopeo copy \
+      #      --authfile /tmp/auth.json \
+      #      --retry-times 3 \
+      #      --dest-compress-format zstd \
+      #      oci-archive:${VARIANT}-asahi-remix.ociarchive \
+      #      docker://${REGISTRY}/${VARIANT}:${version}.${buildid}
+      #    skopeo copy \
+      #      --authfile /tmp/auth.json \
+      #      --retry-times 3 \
+      #      --dest-compress-format zstd \
+      #      docker://${REGISTRY}/${VARIANT}:${version}.${buildid} \
+      #      docker://${REGISTRY}/${VARIANT}:${version}
+      #  env:
+      #    VARIANT: ${{ matrix.variant }}
 
-      - name: Sign container image
-        if: !always() (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
-        run: |
-          version="$(rpm-ostree compose tree --print-only --repo=repo silverblue-asahi-remix.yaml | jq -r '."mutate-os-release"')"
-          cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY }}/${VARIANT}:${version}
-        env:
-          COSIGN_EXPERIMENTAL: false
+      #- name: Sign container image
+      #  if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+      #  run: |
+      #    version="$(rpm-ostree compose tree --print-only --repo=repo silverblue-asahi-remix.yaml | jq -r '."mutate-os-release"')"
+      #    cosign sign -y --key env://COSIGN_PRIVATE_KEY ${{ env.REGISTRY }}/${VARIANT}:${version}
+      #  env:
+      #    COSIGN_EXPERIMENTAL: false
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
           VARIANT: ${{ matrix.variant }}
