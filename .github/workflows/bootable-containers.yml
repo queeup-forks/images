@@ -1,18 +1,18 @@
 name: "Build Fedora Asahi Remix Atomic Desktops Bootable Container images"
 
 env:
-  REGISTRY: "quay.io/fedora-asahi-remix-atomic-desktops"
+  REGISTRY: ghcr.io/${{ github.repository }}
 
 on:
-  pull_request:
-    branches:
-      - main
+  #pull_request:
+  #  branches:
+  #    - main
   push:
-    branches:
-      - main
-  schedule:
-    # At 02:00 every day
-    - cron: '0 2 * * *'
+  #  branches:
+  #    - main
+  #schedule:
+  #  # At 02:00 every day
+  #  - cron: '0 2 * * *'
   workflow_dispatch:
 
 permissions: read-all
@@ -28,9 +28,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['43', '42'] # These correlate to branch names
-        variant: ['silverblue', 'kinoite', 'base-atomic']
-    runs-on: ubuntu-24.04-arm
+        version: ['43'] # These correlate to branch names
+        variant: ['silverblue']
+    runs-on: ubuntu-24.04
     container:
       image: "quay.io/fedora-ostree-desktops/buildroot:${{ matrix.version }}"
       options: "--security-opt=label=disable --privileged --user 0:0 --device=/dev/kvm --device=/dev/fuse --volume /:/run/host:rw"
@@ -52,8 +52,8 @@ jobs:
         if: (github.event_name == 'push' || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ secrets.BOT_USERNAME }}
-          password: ${{ secrets.BOT_SECRET }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
           auth_file_path: /tmp/auth.json
 
       - uses: sigstore/cosign-installer@v3.6.0
